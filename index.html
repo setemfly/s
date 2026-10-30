@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#07C160">
+<title>骑手接单</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font:15px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f3f7f4;color:#26332c;-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:14px 14px 96px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 16px}
+.top h1{font-size:19px;margin:0;letter-spacing:.5px}
+.top h1 i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#07C160;margin-right:8px;vertical-align:2px}
+.who{display:flex;align-items:center;gap:10px;font-size:13px;color:#6b7a72}
+.who span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.link{background:none;border:0;padding:0;font-size:13px;color:#07C160;font-family:inherit}
+.login{background:#fff;border-radius:16px;padding:22px;box-shadow:0 4px 16px rgba(0,0,0,.05);margin-top:26px}
+.login h2{font-size:17px;margin:0 0 6px}
+.login p{font-size:13px;color:#7a8880;margin:0 0 16px}
+label{display:block;font-size:13px;color:#6b7a72;margin:12px 0 6px}
+input{width:100%;height:46px;border:1px solid #e2e9e4;border-radius:12px;padding:0 14px;font-size:16px;background:#fafcfb;font-family:inherit;color:#26332c;outline:none}
+input:focus{border-color:#07C160;background:#fff}
+#btnLogin{border:0;border-radius:12px;font-size:16px;height:48px;width:100%;margin-top:18px;background:#07C160;color:#fff;font-weight:600;font-family:inherit}
+#btnLogin:disabled{opacity:.55}
+.err{color:#e23b3b;font-size:13px;margin-top:10px;min-height:18px;line-height:18px}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
+.no{font-size:13px;color:#8e9a92;word-break:break-all}
+.tag{flex:0 0 auto;font-size:11px;padding:3px 12px;border-radius:999px;background:#EAF7F0;color:#22B573;white-space:nowrap}
+.tag.pending{background:#EAF7F0;color:#22B573}
+.tag.accepted{background:#EAF7F0;color:#22B573}
+.tag.delivering{background:#FFF3E6;color:#E38B2C}
+.tag.done{background:#EEF3FF;color:#4A6CF7}
+.tag.canceled{background:#F1F2F1;color:#9AA5A0}
+.line{font-size:14px;margin:4px 0;word-break:break-all}
+.line b{font-weight:600}
+.line.goods{color:#4a5850}
+.remark{display:flex;gap:8px;align-items:flex-start;margin-top:8px;padding:6px 10px;background:#FFF7E8;border-left:3px solid #F5A623;border-radius:8px}
+.rem-tag{flex:0 0 auto;font-size:12px;font-weight:700;color:#B25E00;background:#FFE7BF;border-radius:6px;padding:1px 6px;line-height:18px}
+.rem-text{font-size:13px;color:#5B4630;line-height:18px;word-break:break-all;white-space:pre-wrap}
+.foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;border-top:1px solid #f0f3f1;padding-top:12px;gap:10px}
+.money{color:#e4571e;font-weight:700;font-size:18px}
+.act button{border:0;border-radius:12px;height:40px;padding:0 20px;font-size:14px;font-weight:600;font-family:inherit;background:#07C160;color:#fff}
+.act button:disabled{opacity:.55}
+.t{font-size:12px;color:#aeb9b2;margin-top:8px}
+.empty{text-align:center;color:#9aa6a0;font-size:14px;padding:64px 0}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eef1ef;padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:13px;color:#6b7a72;max-width:560px;margin:0 auto}
+.bar button{border:0;border-radius:10px;height:38px;padding:0 16px;font-size:13px;font-family:inherit;background:#eef3f0;color:#38473f}
+#barTip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast{position:fixed;left:50%;top:16px;transform:translate(-50%,-20px);opacity:0;pointer-events:none;background:#2b3a32;color:#fff;font-size:14px;padding:10px 18px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);transition:transform .22s ease,opacity .22s ease;z-index:99;max-width:86vw;text-align:center}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.toast.err{background:#c8392b}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1><i></i>骑手接单</h1>
+    <div class="who"><span id="whoTxt"></span><button class="link" id="btnLogout" type="button" style="display:none">退出</button></div>
+  </div>
+
+  <div class="login" id="loginBox">
+    <h2>登录</h2>
+    <p>用店主登记的微信号 + 取货口令登录</p>
+    <label for="wxid">微信号</label>
+    <input id="wxid" type="text" autocomplete="username" placeholder="店主登记的微信号" maxlength="64">
+    <label for="code">取货口令</label>
+    <input id="code" type="tel" inputmode="numeric" autocomplete="current-password" placeholder="店主给你的口令" maxlength="12">
+    <button id="btnLogin" type="button">登录</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div id="listBox" style="display:none"><div id="list"></div></div>
+</div>
+
+<div class="bar" id="bar" style="display:none">
+  <span id="barTip">每 15 秒自动刷新</span>
+  <button id="btnRefresh" type="button">刷新</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>window.__RIDER_API__ = 'https://key482647426-0526-d3dhqo92c3ca85-1519373197.ap-shanghai.app.tcloudbase.com/s/w8mq3';</script>
+<script>
+(function () {
+  var API = (window.__RIDER_API__ || (location.origin + location.pathname));
+  var STATUS_TEXT = { pending: '待接单', accepted: '已接单', delivering: '配送中', done: '已完成', canceled: '已取消' };
+  var S = {
+    wxid: localStorage.getItem('rider_wxid') || '',
+    code: localStorage.getItem('rider_code') || '',
+    nick: localStorage.getItem('rider_nick') || '',
+    timer: null,
+    busy: false,
+    known: {}
+  };
+
+  function $(id) { return document.getElementById(id); }
+
+  function trim(s) {
+    var v = String(s === null || s === undefined ? '' : s);
+    while (v && v.charCodeAt(0) <= 32) v = v.slice(1);
+    while (v && v.charCodeAt(v.length - 1) <= 32) v = v.slice(0, -1);
+    return v;
+  }
+
+  function esc(s) {
+    return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) {
+      if (c === '&') return '&amp;';
+      if (c === '<') return '&lt;';
+      if (c === '>') return '&gt;';
+      if (c === '"') return '&quot;';
+      return '&#39;';
+    });
+  }
+
+  function money(n) {
+    var v = Number(n);
+    return isNaN(v) ? '0.00' : v.toFixed(2);
+  }
+
+  function clock() {
+    var d = new Date();
+    var p = function (x) { return (x < 10 ? '0' : '') + x; };
+    return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+
+  var toastTimer = null;
+  function toast(msg, kind) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (kind === 'err' ? ' err' : '');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = 'toast' + (kind === 'err' ? ' err' : ''); }, 2400);
+  }
+
+  // 所有请求都打回当前页路径，挂在任何前缀下都能用
+  function post(action, extra, cb) {
+    var body = { action: action, wxid: S.wxid, code: S.code };
+    if (extra) { for (var k in extra) { if (Object.prototype.hasOwnProperty.call(extra, k)) body[k] = extra[k]; } }
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      cb(null, j || {});
+    }).catch(function (e) { cb(e || new Error('network')); });
+  }
+
+  function showLogin(msg) {
+    $('loginBox').style.display = '';
+    $('listBox').style.display = 'none';
+    $('bar').style.display = 'none';
+    $('whoTxt').textContent = '';
+    $('btnLogout').style.display = 'none';
+    $('err').textContent = msg || '';
+    if (S.wxid) $('wxid').value = S.wxid;
+  }
+
+  function showList() {
+    $('loginBox').style.display = 'none';
+    $('listBox').style.display = '';
+    $('bar').style.display = 'flex';
+    $('whoTxt').textContent = S.nick ? '你好，' + S.nick : '';
+    $('btnLogout').style.display = '';
+  }
+
+  function render(list) {
+    var box = $('list');
+    if (!list || !list.length) {
+      box.innerHTML = '<div class="empty">暂时没有派给你的单</div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var o = list[i];
+      var st = STATUS_TEXT[o.status] ? o.status : 'pending';
+      var acts = '';
+      if (st === 'pending' || st === 'accepted') {
+        acts = '<button type="button" data-no="' + esc(o.orderNo) + '" data-st="delivering">开始配送</button>';
+      } else if (st === 'delivering') {
+        acts = '<button type="button" data-no="' + esc(o.orderNo) + '" data-st="done">完成</button>';
+      }
+      html += '<div class="card">'
+        + '<div class="row1"><span class="no">' + esc(o.orderNo) + '</span>'
+        + '<span class="tag ' + st + '">' + esc(STATUS_TEXT[st]) + '</span></div>'
+        + '<div class="line"><b>' + esc(o.dorm) + ' ' + esc(o.room) + '</b></div>'
+        + '<div class="line">' + esc(o.name) + '　' + esc(o.phone) + '</div>'
+        + '<div class="line goods">' + esc(o.items) + '</div>'
+        + (o.remark ? '<div class="remark"><span class="rem-tag">备注</span><span class="rem-text">' + esc(o.remark) + '</span></div>' : '')
+        + '<div class="foot"><span class="money">¥' + money(o.payable) + '</span><span class="act">' + acts + '</span></div>'
+        + '<div class="t">' + esc(o.time) + '</div>'
+        + '</div>';
+    }
+    box.innerHTML = html;
+    var btns = box.querySelectorAll('button[data-no]');
+    for (var k = 0; k < btns.length; k++) {
+      btns[k].onclick = function () {
+        setStatus(this.getAttribute('data-no'), this.getAttribute('data-st'));
+      };
+    }
+  }
+
+  function logout(msg) {
+    S.wxid = '';
+    S.code = '';
+    S.nick = '';
+    S.known = {};
+    localStorage.removeItem('rider_wxid');
+    localStorage.removeItem('rider_code');
+    localStorage.removeItem('rider_nick');
+    stopTimer();
+    showLogin(msg || '');
+  }
+
+  function isAuthError(msg) {
+    return msg === '口令不对' || msg === '微信号不在骑手名单里' || msg === '该骑手已被停用' || msg === '后台还没添加骑手';
+  }
+
+  function load(silent) {
+    if (!S.wxid || !S.code) { showLogin(''); return; }
+    post('orders', null, function (err, r) {
+      if (err) { $('barTip').textContent = '网络异常，稍后重试'; return; }
+      if (!r.ok) {
+        if (isAuthError(r.error)) { logout(r.error); return; }
+        $('barTip').textContent = r.error || '加载失败';
+        return;
+      }
+      S.nick = r.nick || S.nick;
+      localStorage.setItem('rider_nick', S.nick);
+      showList();
+      render(r.list || []);
+      $('barTip').textContent = '共 ' + (r.list || []).length + ' 单 · 已更新 ' + clock();
+    });
+  }
+
+  function setStatus(no, st) {
+    if (S.busy) return;
+    S.busy = true;
+    post('setStatus', { orderNo: no, status: st }, function (err, r) {
+      S.busy = false;
+      if (err) { toast('网络异常，稍后重试', 'err'); return; }
+      if (!r.ok) { toast(r.error || '操作失败', 'err'); return; }
+      toast(st === 'done' ? '已标记完成' : '已开始配送');
+      load(true);
+    });
+  }
+
+  function stopTimer() {
+    if (S.timer) { clearInterval(S.timer); S.timer = null; }
+  }
+
+  function startTimer() {
+    stopTimer();
+    S.timer = setInterval(function () {
+      if (document.hidden) return;
+      load(true);
+    }, 15000);
+  }
+
+  $('btnLogin').onclick = function () {
+    var wxid = trim($('wxid').value);
+    var code = trim($('code').value);
+    if (!wxid || !code) { $('err').textContent = '请填写微信号和取货口令'; return; }
+    var btn = $('btnLogin');
+    btn.disabled = true;
+    $('err').textContent = '登录中…';
+    S.wxid = wxid;
+    S.code = code;
+    post('login', null, function (err, r) {
+      btn.disabled = false;
+      if (err) { $('err').textContent = '网络异常，请检查网络'; return; }
+      if (!r.ok) {
+        $('err').textContent = r.error || '登录失败';
+        S.wxid = '';
+        S.code = '';
+        return;
+      }
+      S.nick = r.nick || '';
+      localStorage.setItem('rider_wxid', S.wxid);
+      localStorage.setItem('rider_code', S.code);
+      localStorage.setItem('rider_nick', S.nick);
+      $('err').textContent = '';
+      $('code').value = '';
+      load(false);
+      startTimer();
+    });
+  };
+
+  $('btnLogout').onclick = function () { logout('已退出'); };
+  $('btnRefresh').onclick = function () { load(true); };
+  $('code').addEventListener('keydown', function (e) { if (e.keyCode === 13) $('btnLogin').click(); });
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+      if (S.wxid && S.code) load(true);
+      startTimer();
+    } else {
+      stopTimer();
+    }
+  });
+
+  if (S.wxid && S.code) {
+    load(false);
+    startTimer();
+  } else {
+    showLogin('');
+  }
+})();
+</script>
+</body>
+</html>
